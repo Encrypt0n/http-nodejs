@@ -47,7 +47,7 @@ app.use(express.static('public'));
 
 // WebSocket server
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ server, perMessageDeflate: false }); // Use the HTTPS server for WebSocket
+const wss = new WebSocket.Server({ server }); // Use the HTTPS server for WebSocket
 
 wss.on('connection', (ws) => {
   const videoStream = new Readable();
