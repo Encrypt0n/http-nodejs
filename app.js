@@ -99,6 +99,7 @@ hpdLj9iYaSWC6etkFQxHvt44bOVnvuqM2WqisynxQ5Yx9wv66QhEdNQRBsoQ
 const options = {
   key: privateKey,
   cert: certificate,
+  permessageDeflate: false
 };
 
 const server = https.createServer(options, app);
