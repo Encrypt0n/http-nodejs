@@ -1,21 +1,13 @@
-/*const express = require('express');
-
-const NodeMediaServer = require('node-media-server');
-const cors = require('cors');
-const { Readable } = require('stream');
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-const ffmpeg = require('fluent-ffmpeg');*/
 import express from 'express';
 import NodeMediaServer from 'node-media-server';
 import cors from 'cors';
-import {Readable} from 'stream';
+import { Readable } from 'stream';
 import ffmpegPath from '@ffmpeg-installer/ffmpeg';
 import ffmpeg from 'fluent-ffmpeg';
+import greenlock from 'greenlock-express';
+import { WebSocketServer } from 'ws';
 import { createServer } from 'https';
 import { readFileSync } from 'fs';
-import { WebSocketServer } from 'ws';
-
-
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -51,9 +43,7 @@ nms.run();
 app.use(express.static('public'));
 
 // WebSocket server
-//const WebSocket = require('ws');
-const server = createServer(app);
-const wss = new WebSocketServer({ server  });
+const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', (ws) => {
   const videoStream = new Readable();
@@ -61,7 +51,6 @@ wss.on('connection', (ws) => {
 
   const camera = ffmpeg()
     .input(videoStream)
-    //.inputFormat('h264')
     .inputOptions('-re')
     .outputOptions('-c:v copy')
     .outputOptions('-f flv')
@@ -88,7 +77,22 @@ wss.on('connection', (ws) => {
   });
 });
 
+// Create the HTTPS server
+const server = createServer({
+  cert: readFileSync('certificate.crt'),
+  key: readFileSync('private.key'),
+  requestCert: false,
+  rejectUnauthorized: false,
+});
+
 // Start the server
 server.listen(3000, () => {
   console.log('Server listening on port 3000');
+});
+
+// Upgrade incoming HTTP requests to WebSocket
+server.on('upgrade', (req, socket, head) => {
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    wss.emit('connection', ws, req);
+  });
 });
