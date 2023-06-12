@@ -98,8 +98,7 @@ hpdLj9iYaSWC6etkFQxHvt44bOVnvuqM2WqisynxQ5Yx9wv66QhEdNQRBsoQ
 
 const options = {
   key: privateKey,
-  cert: certificate,
-  permessageDeflate: false
+  cert: certificate
 };
 
 const server = https.createServer(options, app);
@@ -134,7 +133,7 @@ app.use(express.static('public'));
 
 // WebSocket server
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server, permessageDeflate: false });
 
 wss.on('connection', (ws) => {
   const videoStream = new Readable();
