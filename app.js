@@ -1,5 +1,5 @@
 const express = require('express');
-const https = require('https');
+const http = require('http');
 const NodeMediaServer = require('node-media-server');
 const cors = require('cors');
 const { Readable } = require('stream');
@@ -10,8 +10,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
 app.use(cors());
-
-const server = https.createServer(app);
+const server = http.createServer(app);
 
 const streamName = 'myStream';
 const rtmpUrl = `rtmp://localhost/live/${streamName}`;
@@ -43,7 +42,7 @@ app.use(express.static('public'));
 
 // WebSocket server
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server, perMessageDeflate: false });
 
 wss.on('connection', (ws) => {
   const videoStream = new Readable();
@@ -51,6 +50,7 @@ wss.on('connection', (ws) => {
 
   const camera = ffmpeg()
     .input(videoStream)
+    .inputFormat('h264')
     .inputOptions('-re')
     .outputOptions('-c:v copy')
     .outputOptions('-f flv')
@@ -75,6 +75,8 @@ wss.on('connection', (ws) => {
     videoStream.destroy();
     camera.kill();
   });
+
+  
 });
 
 // Start the server
