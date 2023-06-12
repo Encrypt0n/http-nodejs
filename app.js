@@ -7,6 +7,8 @@ const { Readable } = require('stream');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 
+
+
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
@@ -41,17 +43,15 @@ nms.run();
 app.use(express.static('public'));
 
 // WebSocket server
-const httpsServer = https.createServer(
-  {
-    cert: fs.readFileSync('certificate.crt'),
-    key: fs.readFileSync('private.key'),
-  },
-  app
-);
+const WebSocket = require('ws');
+const server = https.createServer({
+  cert: fs.readFileSync('certificate.crt'),
+  key: fs.readFileSync('private.key'),
+  perMessageDeflate: false
+}, app);
+const wss = new WebSocket.Server({ server  });
 
-const io = require('socket.io')(httpsServer);
-
-io.on('connection', (socket) => {
+wss.on('connection', (ws) => {
   const videoStream = new Readable();
   videoStream._read = () => {};
 
@@ -73,17 +73,17 @@ io.on('connection', (socket) => {
     console.error('Error streaming video:', error);
   });
 
-  socket.on('message', (message) => {
+  ws.on('message', (message) => {
     videoStream.push(message);
   });
 
-  socket.on('disconnect', () => {
+  ws.on('close', () => {
     videoStream.destroy();
     camera.kill();
   });
 });
 
 // Start the server
-httpsServer.listen(3000, () => {
+server.listen(3000, () => {
   console.log('Server listening on port 3000');
 });
