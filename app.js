@@ -1,5 +1,5 @@
 const express = require('express');
-const http = require('http');
+const https = require('https');
 const NodeMediaServer = require('node-media-server');
 const cors = require('cors');
 const { Readable } = require('stream');
@@ -10,7 +10,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
 app.use(cors());
-const server = http.createServer(app);
+const server = https.createServer(app);
 
 const streamName = 'myStream';
 const rtmpUrl = `rtmp://localhost/live/${streamName}`;
