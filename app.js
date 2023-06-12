@@ -1,6 +1,5 @@
 const express = require('express');
-const https = require('https'); // Change from 'http' to 'https'
-const fs = require('fs'); // Required for HTTPS server
+const https = require('https');
 const NodeMediaServer = require('node-media-server');
 const cors = require('cors');
 const { Readable } = require('stream');
@@ -11,11 +10,8 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
 app.use(cors());
-const options = {
-  key: fs.readFileSync('private.key'), // Path to your private key file
-  cert: fs.readFileSync('certificate.crt'), // Path to your certificate file
-};
-const server = https.createServer(options, app); // Create an HTTPS server
+
+const server = https.createServer(app);
 
 const streamName = 'myStream';
 const rtmpUrl = `rtmp://localhost/live/${streamName}`;
@@ -47,7 +43,7 @@ app.use(express.static('public'));
 
 // WebSocket server
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ server }); // Use the HTTPS server for WebSocket
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
   const videoStream = new Readable();
@@ -55,7 +51,6 @@ wss.on('connection', (ws) => {
 
   const camera = ffmpeg()
     .input(videoStream)
-    //.inputFormat('h264')
     .inputOptions('-re')
     .outputOptions('-c:v copy')
     .outputOptions('-f flv')
